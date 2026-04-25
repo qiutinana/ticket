@@ -1,0 +1,16 @@
+const base = {
+    get() {
+        return {
+            url : "http://localhost:7000/",
+            name: process.env.NODE_ENV == 'development' ?  "/api": '',
+            // 退出到首页链接
+            indexUrl: 'http://localhost:7000/front/dist/index.html'
+        };
+    },
+    getProjectName(){
+        return {
+            projectName: "${sysname}"
+        } 
+    }
+}
+export default base

@@ -1,0 +1,144 @@
+<template>
+	<div>
+		<!-- 上传文件组件 -->
+		<el-upload v-if="type == 1" ref="upload" :action="getActionUrl" list-type="picture-card" :multiple="multiple"
+			:limit="limit" :headers="myHeaders" :file-list="fileList" :on-exceed="handleExceed"
+			:on-preview="handleUploadPreview" :on-remove="handleRemove" :on-success="handleUploadSuccess"
+			:on-error="handleUploadErr" :before-upload="handleBeforeUpload">
+			<i class="el-icon-plus" v-if="fileList.length<limit"></i>
+			<div slot="tip" class="el-upload__tip">{{ tip }}</div>
+		</el-upload>
+		<el-upload v-else drag ref="upload" :action="getActionUrl" :multiple="multiple" :limit="limit"
+			:headers="myHeaders" :file-list="fileList" :on-exceed="handleExceed" :on-preview="handleUploadPreview"
+			:on-remove="handleRemove" :on-success="handleUploadSuccess" :on-error="handleUploadErr"
+			:before-upload="handleBeforeUpload">
+			<i class="el-icon-upload"></i>
+			<div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+			<div slot="tip" class="el-upload__tip">{{ tip }}</div>
+		</el-upload>
+		<el-dialog :visible.sync="dialogVisible" size="tiny" append-to-body>
+			<img width="100%" v-if="type == 1" :src="dialogImageUrl" alt>
+			<video width="100%" v-if="type == 2" :src="dialogImageUrl" alt controls />
+		</el-dialog>
+	</div>
+</template>
+<script>
+import storage from "@/utils/storage";
+import base from "@/utils/base";
+export default {
+	data() {
+		return {
+			// 查看大图
+			dialogVisible: false,
+			// 查看大图
+			dialogImageUrl: "",
+			// 组件渲染图片的数组字段，有特殊格式要求
+			fileList: [],
+			fileUrlList: [],
+			myHeaders: {}
+		};
+	},
+	props: {
+		tip: {
+			type: String
+		},
+		action: {
+			type: String
+		},
+		/*图片大小*/
+		limit: {
+			type: Number,
+			default: 3 //kb
+		},
+		multiple: {
+			type: Boolean,
+			default: false
+		},
+		fileUrls: {
+			type: String
+		},
+		type: {
+			type: Number,
+			default: 1
+		}
+	},
+	mounted() {
+		this.init();
+		this.myHeaders = {
+			'Authorization': storage.get("Token")
+		}
+	},
+	watch: {
+		fileUrls: function (val, oldVal) {
+			this.init();
+		}
+	},
+	computed: {
+		// 计算属性的 getter
+		getActionUrl: function () {
+			return `${(base.get().name=='/' ? '/': base.get().name + '/')}` + this.action;
+		}
+	},
+	methods: {
+		// 初始化
+		init() {
+
+			if (this.fileUrls) {
+				this.fileUrlList = this.fileUrls.split(",");
+				let fileArray = [];
+				this.fileUrlList.forEach(function (item, index) {
+					var url = item;
+					var name = index;
+					var file = {
+						name: name,
+						url: (base.get().name=='/' ? '': base.get().name) + url
+					};
+					fileArray.push(file);
+				});
+				this.setFileList(fileArray);
+			}
+		},
+		handleBeforeUpload(file) {
+
+		},
+		// 上传文件成功后执行
+		handleUploadSuccess(res, file, fileList) {
+			if (res && res.code === 0) {
+				fileList[fileList.length - 1]["url"] = (base.get().name=='/' ? '': base.get().name) + file.response.data;
+				this.setFileList(fileList);
+				this.$emit("change", this.fileUrlList.join(","));
+			} else {
+				this.$message.error(res.msg);
+			}
+		},
+		// 图片上传失败
+		handleUploadErr(err, file, fileList) {
+			this.$message.error("文件上传失败");
+		},
+		// 移除图片
+		handleRemove(file, fileList) {
+			this.setFileList(fileList);
+			this.$emit("change", this.fileUrlList.join(","));
+		},
+		// 查看大图
+		handleUploadPreview(file) {
+			if (this.type > 2) {
+				window.open(file.url)
+				return false
+			}
+			this.dialogImageUrl = file.url;
+			this.dialogVisible = true;
+		},
+		// 限制图片数量
+		handleExceed(files, fileList) {
+			this.$message.warning(`最多上传${this.limit}张图片`);
+		},
+		// 重新对fileList进行赋值
+		setFileList(fileList) {
+			this.fileList = fileList;
+			this.fileUrlList = fileList.map(v => v.url.replace((base.get().name=='/' ? '': base.get().name), ''));
+		}
+	}
+};
+</script>
+<style lang="scss" scoped></style>

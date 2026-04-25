@@ -1,0 +1,64 @@
+
+> mas-creator-admin@0.1.0 build C:\workspace\daima\pt_mingtaipeijianjiagongchanggongdanguanlixitong\target\classes\static\admin
+> vue-cli-service build "--verbose"
+
+
+-  Building for production...
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+  ╷
+9 │ @import "~element-ui/packages/theme-chalk/src/index";
+  │         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  ╵
+    stdin 9:9  root stylesheet
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+DEPRECATION WARNING [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+
+FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory
+ 1: 00007FF6CCD73B5F napi_wrap+119263
+ 2: 00007FF6CCD1A4A6 v8::internal::OrderedHashTable<v8::internal::OrderedHashSet,1>::NextTableOffset+38102
+ 3: 00007FF6CCD1B2A6 node::OnFatalError+438
+ 4: 00007FF6CD559C1E v8::Isolate::ReportExternalAllocationLimitReached+94
+ 5: 00007FF6CD541DD1 v8::SharedArrayBuffer::Externalize+833
+ 6: 00007FF6CD3F358C v8::internal::Heap::EphemeronKeyWriteBarrierFromCode+1436
+ 7: 00007FF6CD3FE7D0 v8::internal::Heap::ProtectUnprotectedMemoryChunks+1312
+ 8: 00007FF6CD3FB2E4 v8::internal::Heap::PageFlagsAreConsistent+3204
+ 9: 00007FF6CD3F0AE3 v8::internal::Heap::CollectGarbage+1283
+10: 00007FF6CD3EF154 v8::internal::Heap::AddRetainedMap+2500
+11: 00007FF6CD419D66 v8::internal::Factory::NewStruct+102
+12: 00007FF6CD41956E v8::internal::Factory::NewStackTraceFrame+46
+13: 00007FF6CD43CA90 v8::internal::Isolate::GetCodeTracer+1296
+14: 00007FF6CD439FA8 v8::internal::Isolate::AreWasmThreadsEnabled+4488
+15: 00007FF6CD4398D0 v8::internal::Isolate::AreWasmThreadsEnabled+2736
+16: 00007FF6CD439029 v8::internal::Isolate::AreWasmThreadsEnabled+521
+17: 00007FF6CD433C02 v8::internal::MessageFormatter::Format+12386
+18: 00007FF6CD40F9AA v8::internal::Factory::NewError+186
+19: 00007FF6CD41AC1E v8::internal::Factory::NewTypeError+158
+20: 00007FF6CD433E7F v8::internal::MessageHandler::MakeMessageObject+319
+21: 00007FF6CD17550C v8::internal::interpreter::JumpTableTargetOffsets::iterator::operator=+8444
+22: 00007FF6CD9AF4BD v8::internal::SetupIsolateDelegate::SetupHeap+546925
+23: 00007FF6CD92DC45 v8::internal::SetupIsolateDelegate::SetupHeap+16373
+24: 00007FF6CD93434C v8::internal::SetupIsolateDelegate::SetupHeap+42748
+25: 000002081030EE63 
+npm ERR! code ELIFECYCLE
+npm ERR! errno 134
+npm ERR! mas-creator-admin@0.1.0 build: `vue-cli-service build "--verbose"`
+npm ERR! Exit status 134
+npm ERR! 
+npm ERR! Failed at the mas-creator-admin@0.1.0 build script.
+npm ERR! This is probably not a problem with npm. There is likely additional logging output above.
+
+npm ERR! A complete log of this run can be found in:
+npm ERR!     C:\Users\facai\AppData\Roaming\npm-cache\_logs\2026-04-25T15_35_10_646Z-debug.log

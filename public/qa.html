@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta name="renderer" content="webkit" />
+    <meta name="force-rendering" content="webkit" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+    <title>智能助理</title>
+    <link rel="stylesheet" href="https://g.alicdn.com/code/npm/@ali/chatui-sdk/6.6.10/ChatSDK.css" />
+    <style>
+        body.S--wide {
+            align-items: center;
+            background: #fff;
+            background-size: cover;
+            display: -ms-flexbox;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script src="https://g.alicdn.com/code/npm/@ali/chatui-sdk/6.6.10/ChatSDK.js"></script>
+    <script src="//g.alicdn.com/chatui/icons/2.0.2/index.js"></script>
+    <script src="./js/ChatSSE.js"></script>
+    <script>
+        const puser = JSON.parse(localStorage.getItem("kuser"))
+        const queryObj = ChatSDK.utils.queryString.parseUrl(location.href).query
+        const apiPrefix = queryObj.apiPrefix;
+        const Token = localStorage.getItem("Token").replace('"', '').replace('"', '')
+        var bot = null;
+        const getHis = () => new Promise((resolve) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', apiPrefix + `/zhinengkefu/bhlist?yonghuid=${puser.id}&yewuid=${queryObj.userId}`, true);
+            xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+            xhr.setRequestHeader('Authorization', `Bearer ${Token}`);
+            xhr.onload = function (res) {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    const resp = JSON.parse(xhr.responseText)
+                    const msgs = resp.data || []
+                    const msgIds = bot.getMessageList().map(e => e._id)
+                    msgs.forEach(ele => {
+                        if (!msgIds.includes(ele.id)) {
+                            bot.appendMessage({
+                                "_id": ele.id,
+                                "code": ele.neirongleixing,
+                                position: 'left',
+                                "data": {
+                                    "text": ele.tiwen,
+                                    "picUrl": apiPrefix + (ele.neirongleixing == "image" ? ele.tiwen : ''),
+                                },
+                                "createdAt": new Date(ele.addtime).getTime()
+                            });
+                        }
+                    })
+                }
+            };
+            xhr.send();
+        });
+
+        function intervalPolling() {
+            console.log("=== 开始setInterval轮询示例 ===");
+            // 轮询执行的函数
+            function fetchUpdates() {
+                getHis()
+            }
+            // 每2秒执行一次
+            const intervalId = setInterval(fetchUpdates, 1000);
+        }
+
+        const huifuMsg = (text, huifuleixing, neirongleixing = 'text') => new Promise((resolve) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', apiPrefix + "/zhinengkefu/rgadd", true);
+            xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+            xhr.setRequestHeader('Authorization', `Bearer ${Token}`);
+            xhr.onload = function (res) {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                }
+            };
+            xhr.send(JSON.stringify({
+                yonghuid: puser.id,
+                huifu: text,
+                shifouhuifu: '0',
+                shifouyuedu: '0',
+                huifuleixing,
+                neirongleixing,
+                yewu: queryObj.yewu,
+                yewuid: queryObj.userId,
+            }));
+        });
+        let kftype = '智能'
+        bot = new ChatSDK({
+            config: {
+                // （可选）配置按钮文案
+                loadMoreText: '',
+                // （可选）进入页面时，是否自动触发加载历史消息操作
+                autoLoadMore: true,
+                /** （可选）是否禁止展示加载更多，为true时不展示“查看更多消息”按钮 */
+                noMore: false,
+                navbar: {
+                    title: `与（${puser?.xingming}）聊天中`,
+                },
+                robot: {
+                    avatar: '//gw.alicdn.com/tfs/TB1U7FBiAT2gK0jSZPcXXcKkpXa-108-108.jpg',
+                },
+                messages: [],
+                quickReplies: [],
+                toolbar: [{
+                    type: 'image',
+                    icon: 'image',
+                    title: '相册',
+                }],
+            },
+            requests: {
+                send: function (msg) {
+                    if (msg.type === 'text') {
+                        const obj = bot.util.queryString.parseUrl(location.href)
+                        return huifuMsg(msg.content.text, '人工回复')
+                    }
+                },
+                // 配置接口
+                history: function () {
+                    return {
+                        url: apiPrefix + `/zhinengkefu/list?yonghuid=${queryObj.userId}&yewuid=${puser.id}`,
+                        method: 'GET', // 默认GET，按需改为'POST',
+                        headers: {
+                            Authorization: `Bearer ${Token}`
+                        }
+                    };
+                },
+            },
+            handlers: {
+                parseResponse: function (res, requestType) {
+                    const obj = bot
+
+                    // 根据 requestType 处理数据
+                    if (requestType === 'send' && res.Messages) {
+                        // return isvParser({ data: res });
+                        return {}
+                    } else if ('history' == requestType) {
+                        setTimeout(() => intervalPolling(), 4000)
+                        const d = res.data || []
+                        return {
+                            list: d.map(e => ({
+                                "_id": e.id,
+                                "code": e.neirongleixing,
+                                position: e.huifu ? 'right' : 'left',
+                                "data": {
+                                    "text": e.huifu ? e.huifu : e.tiwen,
+                                    "picUrl": apiPrefix + (e.neirongleixing == "image" ? e.huifu ? e.huifu : e.tiwen : ''),
+                                },
+                                "createdAt": new Date(e.addtime).getTime()
+                            })),
+                            nonoMore: true,
+                        };
+                    }
+                    return res;
+                },
+                onToolbarClick(item, ctx) {
+                    // 如果点的是“相册”
+                    if (item.type === 'image') {
+                        ctx.util.chooseImage({
+                            // multiple: true, // 是否可多选
+                            success(e) {
+                                if (e.files) {
+                                    // 如果有 h5 上传的图
+                                    const file = e.files[0];
+                                    // 先展示图片
+                                    // ctx.appendMessage({
+                                    //     code: 'image',
+                                    //     data: {
+                                    //         picUrl: URL.createObjectURL(file),
+                                    //     },
+                                    //     position: 'right',
+                                    // });
+                                    const xhr = new XMLHttpRequest
+                                    const fd = new FormData()
+                                    fd.append('file', file)
+                                    xhr.open('POST', apiPrefix + '/upload', true)
+                                    xhr.setRequestHeader('Authorization', `Bearer ${Token}`);
+                                    xhr.onload = function (res) {
+                                        if (xhr.status >= 200 && xhr.status < 300) {
+                                            const obj = JSON.parse(res.target.responseText)
+                                            ctx.appendMessage({
+                                                code: 'image',
+                                                data: {
+                                                    picUrl: apiPrefix + obj.data,
+                                                },
+                                                position: 'right',
+                                            });
+                                            return huifuMsg(obj.data, 'image', '人工回复')
+                                        }
+                                    };
+                                    xhr.send(fd)
+
+                                }
+                            },
+                        });
+                    }
+                },
+            },
+            makeRecorder({ ctx }) {
+                return {
+                    canRecord: true,
+                    onStart() {
+                        // 开始录音
+                        nativeInvoke('startVoiceRecognition');
+                    },
+                    onEnd() {
+                        // 停止录音
+                        nativeInvoke('stopVoiceRecognition', (text) => {
+                            // 识别到文本
+                            ctx.postMessage({
+                                code: 'text',
+                                data: { text },
+                            });
+                        });
+                    },
+                    onCancel() {
+                        // 录音
+                        nativeInvoke('cancelVoiceRecognition');
+                    },
+                };
+            },
+        });
+        bot.run();
+        setTimeout(() => {
+            document.getElementsByClassName("ChatSDKStyle")[0].style.width = '100vw'
+        }, 100)
+    </script>
+</body>
+
+</html>
